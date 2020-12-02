@@ -27,9 +27,10 @@ public class ConnectionHandler implements Runnable
 	// TODO: add poll
 	// TODO: add/remove user from group
 	// TODO: fix issue where disconnecting a second time breaks stuff
+	// TODO: case insensitivity
 
 	// command to see who is online
-	// remove the addUser if they don't exist when being messaged feature?
+	// remove the addUser if they don't exist when being messaged feature? -> add notification
 	// saving stuff to file to stop and restart
 	// welcome messages and logging
 	

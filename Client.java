@@ -65,7 +65,7 @@ public class Client implements Runnable
 		}
 		catch (Exception e)
 		{
-			System.out.println("please use the following message format:\nmessage [receiver's name] [message content]");
+			System.out.println("please use the following message format:\nmsg [receiver's name] [message content]");
 		}
     }
 
@@ -157,9 +157,9 @@ public class Client implements Runnable
     public static void main(String[] args) throws IOException
 	{
 		// get command line args
-		String name = (args.length > 0) ? args[0] : "user"+(int)(Math.random()*1000000);
+		String name = (args.length > 0) ? args[0] : System.getProperty("user.name");
 		String host = (args.length > 1) ? args[1] : "localhost";
-        int    port = (args.length > 2) ? Integer.parseInt(args[2]) : Server.PORT;
+		int    port = (args.length > 2) ? Integer.parseInt(args[2]) : Server.PORT;
         
         Client c = new Client(name, host, port);
         c.start();
