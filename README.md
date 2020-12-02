@@ -19,3 +19,7 @@ Example:
 
 
 also, spacing messed up when copying the files.
+TODO: more functionality for checking name validity and notifying client
+TODO: add poll
+TODO: add/remove user from group
+TODO: fix issue where disconnecting a second time breaks stuff
