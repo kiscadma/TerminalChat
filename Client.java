@@ -29,8 +29,7 @@ public class Client implements Runnable
         try
         {
             // connect to the server automatically and start receiver
-            out.writeObject("connect");
-            out.writeObject(name);
+            connect(name);
             mr.start();
 
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -41,7 +40,8 @@ public class Client implements Runnable
             {
                 line = in.readLine().split(" ");
                 command = line[0];
-                if (command.toLowerCase().equals("disconnect")) disconnect();
+				if (command.toLowerCase().equals("disconnect")) disconnect();
+				else if (command.toLowerCase().equals("connect")) connect(line[1]);
                 else if (command.toLowerCase().equals("msg")) sendMessage(line);
                 else if (command.toLowerCase().equals("creategroup")) createGroup(line);
             } while (keepRunning);
@@ -91,6 +91,13 @@ public class Client implements Runnable
         out.writeObject("disconnect");
         keepRunning = false;
 		mr.stop();
+	}
+
+	private void connect(String userName) throws IOException
+	{
+        out.writeObject("connect");
+		out.writeObject(userName.toLowerCase());
+		name = userName;
 	}
 
     public void start()
@@ -157,9 +164,9 @@ public class Client implements Runnable
     public static void main(String[] args) throws IOException
 	{
 		// get command line args
-		String name = (args.length > 0) ? args[0] : System.getProperty("user.name");
+		String name = (args.length > 0) ? args[0].toLowerCase() : System.getProperty("user.name");
 		String host = (args.length > 1) ? args[1] : "localhost";
-		int    port = (args.length > 2) ? Integer.parseInt(args[2]) : Server.PORT;
+		int    port = (args.length > 2) ? Integer.parseInt(args[2]) : 46200; //Server.PORT;
         
         Client c = new Client(name, host, port);
         c.start();

@@ -137,7 +137,7 @@ public class Server implements Runnable
 		{
 			Socket s;
 			ss = new ServerSocket(PORT);
-			ss.setSoTimeout(300000);
+			ss.setSoTimeout(3000000);
 			
 			while (keepRunning)
 			{

@@ -23,6 +23,7 @@ public class ConnectionHandler implements Runnable
 	private Server serv;
 
 	// TODO: more functionality for checking name validity and notifying client
+	// TODO: validate user isn't using group name
 	// TODO:  > only message groups that include the sender
 	// TODO: add poll
 	// TODO: add/remove user from group
@@ -59,7 +60,7 @@ public class ConnectionHandler implements Runnable
 		try
 		{
 			String command = (String) in.readObject();
-			if (command.toLowerCase().equals("connect")) handleConnect();
+			if      (command.toLowerCase().equals("connect")) handleConnect();
 			else if (command.toLowerCase().equals("message")) handleMessage();
 			else if (command.toLowerCase().equals("disconnect")) handleDisconnect();
 			else if (command.toLowerCase().equals("creategroup")) handleCreateGroup();
@@ -74,7 +75,16 @@ public class ConnectionHandler implements Runnable
 	{
 		try
 		{
-			userName = (String) in.readObject();
+			userName = ((String) in.readObject()).toLowerCase();
+
+			// need a unique username
+			if (serv.getConnectedUsers().contains(userName)) 
+			{
+				out.writeObject("message");
+				out.writeObject(new Message("SERVER", userName, "That username is already being used."
+					+ " Please try again with a new name:\nconnect newUsername"));
+				return;
+			}
 
 			// add the user
 			serv.addUser(userName, this, id);
