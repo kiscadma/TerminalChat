@@ -165,7 +165,7 @@ public class Client implements Runnable
 	{
 		// get command line args
 		String name = (args.length > 0) ? args[0].toLowerCase() : System.getProperty("user.name");
-		String host = (args.length > 1) ? args[1] : "localhost";
+		String host = (args.length > 1) ? args[1] : "localhost"; 
 		int    port = (args.length > 2) ? Integer.parseInt(args[2]) : 46200; //Server.PORT;
         
         Client c = new Client(name, host, port);
