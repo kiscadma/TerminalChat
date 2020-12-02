@@ -129,7 +129,7 @@ public class Client implements Runnable
 				{
 					command = (String) in.readObject();
                     if (command.equals("message")) receiveMessage();
-                    else if (command.equals("disconnect")) stop();
+					else if (command.equals("disconnect")) stop();
 				}
 				catch (ClassNotFoundException | IOException e)
 				{
