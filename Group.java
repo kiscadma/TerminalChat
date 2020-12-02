@@ -1,17 +1,16 @@
-import java.util.List;
+
+import java.util.Map;
 
 public class Group
 {
     private String name;
-    private List<String> memberNames;
-    private List<Integer> memberIDs;
+    private Map<Integer, String> members;
     // private Poll poll;
 
-    public Group(String name, List<String> memberNames, List<Integer> memberIDs)
+    public Group(String name, Map<Integer, String> members)
     {
         this.name = name;
-        this.memberNames = memberNames;
-        this.memberIDs = memberIDs;
+        this.members = members;
     }
 
     public String getName()
@@ -19,26 +18,18 @@ public class Group
         return name;
     }
 
-    public List<String> getMemberNames()
+    public Map<Integer, String> getMembers()
     {
-        return memberNames;
-    }
-
-    public List<Integer> getMemberIDs()
-    {
-        return memberIDs;
+        return members;
     }
 
     public void addMember(String name, int id)
     {
-        memberNames.add(name);
-        memberIDs.add(id);
+        members.put(id, name);
     }
 
     public void removeMember(int id)
     {
-        int index = memberIDs.indexOf(id);
-        memberNames.remove(index);
-        memberNames.remove(index);
+        members.remove(id);
     }
 }
