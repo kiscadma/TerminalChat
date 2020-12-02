@@ -179,7 +179,7 @@ public class ConnectionHandler implements Runnable
 			{
 				while (keepRunning)
 				{
-                    Thread.sleep(1000); // wait before sending anything
+                    // Thread.sleep(1000); // wait before sending anything
                     List<Message> msgs = serv.getMessagesForUser(id);
                     if (msgs.isEmpty()) continue;
 					for (Message m : msgs)
@@ -190,7 +190,7 @@ public class ConnectionHandler implements Runnable
 				}
 				out.close();
 			}
-			catch (InterruptedException | IOException e)
+			catch (IOException e)
 			{
 				// ignore for now
 			} 
