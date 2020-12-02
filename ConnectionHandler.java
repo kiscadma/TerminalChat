@@ -15,6 +15,7 @@ public class ConnectionHandler implements Runnable
 {
 	private volatile boolean keepRunning;
 	private volatile int id; // this can change so we'll keep it volatile
+	private String userName;
 	private MessageSender ms;
 	private Thread controlThread;
 	private ObjectInputStream in;
@@ -22,9 +23,15 @@ public class ConnectionHandler implements Runnable
 	private Server serv;
 
 	// TODO: more functionality for checking name validity and notifying client
+	// TODO:  > only message groups that include the sender
 	// TODO: add poll
 	// TODO: add/remove user from group
 	// TODO: fix issue where disconnecting a second time breaks stuff
+
+	// command to see who is online
+	// remove the addUser if they don't exist when being messaged feature?
+	// saving stuff to file to stop and restart
+	// welcome messages and logging
 	
 	public ConnectionHandler(Socket sock, Server serv, int id) throws IOException
 	{
@@ -66,8 +73,19 @@ public class ConnectionHandler implements Runnable
 	{
 		try
 		{
-			String userName = (String) in.readObject();
+			userName = (String) in.readObject();
+
+			// add the user
 			serv.addUser(userName, this, id);
+
+			// tell the user who is online
+			serv.addMessage(new Message("SERVER", userName, 
+					"Currently online: " + serv.getConnectedUsers().toString()));
+
+			// notify online users that this user connected using the 'all' group
+			serv.addMessage(new Message("SERVER", "all", 
+			userName + " has entered the chat"));
+			
 			ms.start(); // we can start the sender after the user is added
 		}
 		catch (ClassNotFoundException | IOException e)
@@ -93,6 +111,10 @@ public class ConnectionHandler implements Runnable
 	{
 		try
 		{
+			// notify online users that this user is disconnecting using the 'all' group
+			serv.addMessage(new Message("SERVER", "all", 
+					userName + " has left the chat"));
+
 			serv.removeUser(id);
 			out.writeObject("disconnect"); // echo disconnect back to the user
 			in.close();
