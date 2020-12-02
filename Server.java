@@ -23,46 +23,58 @@ public class Server implements Runnable
         userIDs = Collections.synchronizedMap(new HashMap<String, Integer>());
         groups = Collections.synchronizedMap(new HashMap<String, Group>());
 		messages = Collections.synchronizedMap(new HashMap<Integer, List<Message>>());
-		groups.put("all", new Group("all", new LinkedList<String>(), new LinkedList<Integer>()));
+		addGroup("all", new LinkedList<String>());
 	}
 	
 	public void addUser(String userName, ConnectionHandler ch, int userID)
 	{
-        // check if they're new
+        // they haven't connected or been mentioned before
         if (!userIDs.containsKey(userName))
         {
             userIDs.put(userName, userID);
 			messages.put(userID, new LinkedList<Message>());
-			groups.get("all").addMember(userName, userID);
             System.out.println("SERVER: added new user " + userName + "[id:" + userID + "]");
         }
         else // they are a returning user or have already been messaged
         {
-            int oldID = userIDs.get(userName);
-            ch.setID(oldID); // update the connectionhandler's id
-            System.out.println("SERVER: adding existing user " + userName + "[id:" + oldID + "]");
-        }
+            userID = userIDs.get(userName);
+            ch.setID(userID); // update the connectionhandler's id
+            System.out.println("SERVER: adding existing user " + userName + "[id:" + userID + "]");
+		}
+	
+		// add them to the 'all' group if they are actually online
+		if (ch != null)
+		{
+			System.out.println("SERVER: adding " + userName + " to 'all' group");
+			groups.get("all").addMember(userName, userID);
+		}
     }
 
-    public void addGroup(String groupName, List<String> members)
+    public void addGroup(String groupName, List<String> memberNames)
     {
-		LinkedList<Integer> ids = new LinkedList<>();
-		for (String name : members) 
+		Map<Integer, String> members = Collections.synchronizedMap(new HashMap<>());
+
+		// add members to members map
+		for (String name : memberNames) 
 		{
+			// if a user doesn't exist yet, add them
 			if (!userIDs.containsKey(name)) addUser(name, null, userID++);
-			ids.add(userIDs.get(name));
-			addMessage(new Message("SERVER", name, "you were added to the " + groupName + " group"));
+			members.put(userIDs.get(name), name);
+
+			// SERVER will notify people that they've been added to the group. first member name is creator
+			addMessage(new Message("SERVER", name, 
+						"you were added to the " + groupName + " group by " + memberNames.get(0)));
 		}
-        groups.put(groupName, new Group(groupName, members, ids));
-        System.out.print("SERVER: created group " + groupName + " with members:");
-        for (String s : members) System.out.print(" " + s);
+        groups.put(groupName, new Group(groupName, members));
+        System.out.print("SERVER: created group " + groupName + " with " + memberNames.size() + " members:");
+        for (String s : memberNames) System.out.print(" " + s);
         System.out.println();
     }
     
     public void removeUser(int userID)
     {
 		groups.get("all").removeMember(userID);
-        System.out.println("SERVER: user:" + userID + " has disconnected");
+		System.out.println("SERVER: user:" + userID + " has disconnected. They have been removed from 'all'");
     }
 	
 	public void addMessage(Message m)
@@ -73,23 +85,31 @@ public class Server implements Runnable
         // check if this is a group message
         if (groups.containsKey(recipient))
         {
+			// recipient is the groupName
 			m.sender = "[" + recipient + "] " + m.sender;
-			List<Integer> ids = groups.get(recipient).getMemberIDs();
-			List<String> names = groups.get(recipient).getMemberNames();
-			for (Integer id : ids) if (id != userIDs.get(sender)) messages.get(id).add(m);
+			Map<Integer, String> members = groups.get(recipient).getMembers();
+			System.out.print("SERVER: " + sender + " messaged the '" + recipient + "' group: ");
 
-            System.out.print("SERVER: " + sender + " messaged the '" + recipient + "' group: ");
-			for (String name : names) if (!name.equals(sender)) System.out.print(name + " ");
+			// iterate through group members, messaging everyone except the sender
+			for (Integer id : members.keySet())
+			{
+				String name = members.get(id);
+				if (name.equals(sender)) continue;
+				System.out.print(name + " ");
+				messages.get(id).add(m);
+			}
             System.out.println();
         }
         else // not a group message. let's add the message to the user's list
         {
-            // we don't have this reciever online. let's add them
+            // we don't know this reciever. let's add them
             if (!userIDs.containsKey(recipient)) addUser(recipient, null, userID++);
 
             int receiverID = userIDs.get(recipient);
-            messages.get(receiverID).add(m);
-            System.out.println("SERVER: " + m.sender + " messaged " + recipient);
+			messages.get(receiverID).add(m);
+			
+			if (!m.sender.equals("SERVER")) 
+				System.out.println("SERVER: " + m.sender + " messaged " + recipient);
         }
 	}
 	
@@ -102,6 +122,13 @@ public class Server implements Runnable
             messages.get(userID).clear(); // clear the messages because we're about to send them
         }
 		return msgs;
+	}
+
+	public List<String> getConnectedUsers()
+	{
+		List<String> users = new LinkedList<>();
+		for (String name : groups.get("all").getMembers().values()) users.add(name);
+		return users;
 	}
 
 	public void run()
