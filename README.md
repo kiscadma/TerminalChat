@@ -3,7 +3,7 @@ final project for cs462
 
 currently supported client commands:
 ```
-msg [message receiver's name] [message]
+msg [username/groupname for receiver] [message]
 creategroup [groupname] [members of the group delimited by 1 space]
 disconnect
 ```
