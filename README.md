@@ -23,6 +23,6 @@ TODO: more functionality for checking name validity and notifying client
 
 TODO: add poll
 
-TODO: add/remove user from group
+TODO: add/remove user from group -> the code exists to do this, just need to add command in client and connectionhandler
 
 TODO: fix issue where disconnecting a second time breaks stuff
