@@ -24,13 +24,14 @@ public class ConnectionHandler implements Runnable
 	// TODO: more functionality for checking name validity and notifying client
 	// TODO: add poll
 	// TODO: add/remove user from group
+	// TODO: fix issue where disconnecting a second time breaks stuff
 	
 	public ConnectionHandler(Socket sock, Server serv, int id) throws IOException
 	{
 		this.serv = serv;
-        	this.id = id;
-        	out = new ObjectOutputStream(sock.getOutputStream());
-        	in  = new ObjectInputStream(sock.getInputStream());
+        this.id = id;
+        out = new ObjectOutputStream(sock.getOutputStream());
+        in  = new ObjectInputStream(sock.getInputStream());
 		ms = new MessageSender();
     }
     
@@ -41,8 +42,8 @@ public class ConnectionHandler implements Runnable
 	
 	public void run()
 	{
-        	while (keepRunning) readFromClient();
-        	controlThread = null;
+        while (keepRunning) readFromClient();
+        controlThread = null;
 	}
 	
 	private void readFromClient()
@@ -145,9 +146,9 @@ public class ConnectionHandler implements Runnable
 			{
 				while (keepRunning)
 				{
-                			Thread.sleep(1000); // wait before sending anything
-                   			List<Message> msgs = serv.getMessagesForUser(id);
-                    			if (msgs.isEmpty()) continue;
+                    Thread.sleep(1000); // wait before sending anything
+                    List<Message> msgs = serv.getMessagesForUser(id);
+                    if (msgs.isEmpty()) continue;
 					for (Message m : msgs)
 					{
 						out.writeObject("message");
