@@ -20,4 +20,4 @@ Example:
 
 also, spacing messed up when copying the files.
 
-#There is a TODO list and list of ideas on the ConnectionHandler.java file.
+# There is a TODO list and list of ideas on the ConnectionHandler.java file.
