@@ -7,7 +7,8 @@ import java.net.Socket;
 
 public class Client implements Runnable
 {
-    private volatile boolean keepRunning;
+	private volatile boolean keepRunning;
+	private volatile String line;
     private Thread controlThread;
 	private Socket s;
 	private ObjectInputStream in;
@@ -15,7 +16,7 @@ public class Client implements Runnable
 	private BufferedReader keyboard;
 	private String name;
     private MessageReceiver mr;
-    
+
     public Client(String name, String host, int port) throws IOException
     {
         this.name = name;
@@ -23,7 +24,8 @@ public class Client implements Runnable
         out = new ObjectOutputStream(s.getOutputStream());
         in = new ObjectInputStream(s.getInputStream());
 		mr = new MessageReceiver();
-    }
+		line = "";
+	}
 
     public void run()
     {
@@ -34,17 +36,28 @@ public class Client implements Runnable
             mr.start();
 
             keyboard = new BufferedReader(new InputStreamReader(System.in));
-			String[] line;
+			String[] lineArr;
+			char c;
             String command;
 
             do
             {
-                line = keyboard.readLine().split(" ");
-                command = line[0];
+				c = (char) keyboard.read();
+				while (c != '\n')
+				{
+					line += c;
+					c = (char) keyboard.read();
+				}
+
+				lineArr = line.split(" ");
+				line = "";
+
+                command = lineArr[0];
 				if      (command.toLowerCase().equals("disconnect")) disconnect();
-				else if (command.toLowerCase().equals("connect")) connect(line[1]);
-                else if (command.toLowerCase().equals("msg")) sendMessage(line);
-				else if (command.toLowerCase().equals("creategroup")) createGroup(line);
+				else if (command.toLowerCase().equals("connect")) connect(lineArr[1]);
+                else if (command.toLowerCase().equals("msg")) sendMessage(lineArr);
+				else if (command.toLowerCase().equals("creategroup")) createGroup(lineArr);
+				System.out.print("\n> ");
             } while (keepRunning);
         }
         catch (IOException e)
@@ -53,17 +66,16 @@ public class Client implements Runnable
         }
     }
 
-	private void sendMessage(String[] line)
+	private void sendMessage(String[] lineArr)
 	{
 		try
 		{
-            String receiver = line[1];
+            String receiver = lineArr[1];
             String content = "";
-            for (int i = 2; i < line.length; i++) content += " "+line[i];
+            for (int i = 2; i < lineArr.length; i++) content += " "+lineArr[i];
 			Message m = new Message(name, receiver, content.trim());
 			out.writeObject("message");
 			out.writeObject(m);
-			System.out.print("\n> ");
 		}
 		catch (Exception e)
 		{
@@ -71,20 +83,21 @@ public class Client implements Runnable
 		}
     }
 
-    private void createGroup(String[] line)
+    private void createGroup(String[] lineArr)
 	{
 		try
 		{
-            String groupName = line[1];
+            String groupName = lineArr[1];
             String members = "";
-            for (int i = 2; i < line.length; i++) members += " "+line[i];
+            for (int i = 2; i < lineArr.length; i++) members += " "+lineArr[i];
             out.writeObject("createGroup");
             out.writeObject(groupName);
 			out.writeObject(members);
 		}
 		catch (Exception e)
 		{
-			System.out.println("please use the following message format:\nmessage [receiver's name] [message content]");
+			System.out.println("please use the following message format:\n"
+				+ "creategroup [group name] [group members delimited by spaces]");
 		}
     }
 
@@ -121,8 +134,15 @@ public class Client implements Runnable
 			try
 			{
 				Message m = (Message) in.readObject();
-				// System.out.print ('\f');
-				System.out.print("\n\n> "+m.sender+": " + m.content +"\n\n> ");
+
+				// remove whatever is currently in the line above
+				System.out.print(String.format("\033[%dA", 1)); // Move up 1 line
+				System.out.print("\033[2K"); // Erase line content
+				
+				System.out.println("\n> "+m.sender+": " + m.content);
+				System.out.flush();
+				System.out.print("\n> " + line);
+				System.out.flush();
 			}
 			catch (ClassNotFoundException | IOException e)
 			{
