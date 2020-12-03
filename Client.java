@@ -62,6 +62,7 @@ public class Client implements Runnable
 			Message m = new Message(name, receiver, content.trim());
 			out.writeObject("message");
 			out.writeObject(m);
+			System.out.print("\n> ");
 		}
 		catch (Exception e)
 		{
