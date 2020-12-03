@@ -242,7 +242,7 @@ public class ConnectionHandler implements Runnable
 		public void stop()
 		{
 			keepRunning = false;
-			msgThread.interrupt();
+			if (msgThread != null) msgThread.interrupt();
 		}
 	}
 }

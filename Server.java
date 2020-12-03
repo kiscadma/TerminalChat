@@ -73,6 +73,7 @@ public class Server implements Runnable
     public void removeUser(int userID)
     {
 		String name = groups.get("all").getMembers().get(userID);
+		if (name == null) return;
 		groups.get("all").removeMember(userID);
 		System.out.println("SERVER: user:" + name + " has disconnected. They have been removed from 'all'");
     }
