@@ -40,7 +40,7 @@ public class Client implements Runnable
             {
                 line = in.readLine().split(" ");
                 command = line[0];
-				if (command.toLowerCase().equals("disconnect")) disconnect();
+				if      (command.toLowerCase().equals("disconnect")) disconnect();
 				else if (command.toLowerCase().equals("connect")) connect(line[1]);
                 else if (command.toLowerCase().equals("msg")) sendMessage(line);
                 else if (command.toLowerCase().equals("creategroup")) createGroup(line);
@@ -119,7 +119,7 @@ public class Client implements Runnable
 			try
 			{
 				Message m = (Message) in.readObject();
-				System.out.println("\n> "+m.sender+": " + m.content +"\n");
+				System.out.print("\n\n> "+m.sender+": " + m.content +"\n\n> ");
 			} 
 			catch (ClassNotFoundException | IOException e)
 			{

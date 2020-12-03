@@ -22,16 +22,12 @@ public class ConnectionHandler implements Runnable
 	private ObjectOutputStream out;
 	private Server serv;
 
-	// TODO: more functionality for checking name validity and notifying client
-	// TODO: validate user isn't using group name
-	// TODO:  > only message groups that include the sender
 	// TODO: add poll
 	// TODO: add/remove user from group
-	// TODO: fix issue where disconnecting a second time breaks stuff
-	// TODO: case insensitivity
+	// TODO: help feature in client
 
 	// command to see who is online
-	// remove the addUser if they don't exist when being messaged feature? -> add notification
+	// add notification saying that a user is offline when you try to message them
 	// saving stuff to file to stop and restart
 	// welcome messages and logging
 	
@@ -51,7 +47,17 @@ public class ConnectionHandler implements Runnable
 	
 	public void run()
 	{
-        while (keepRunning) readFromClient();
+		while (keepRunning) 
+		{
+			try
+			{
+				// we can wait for a little bit to prevent user spam of server
+				// and also save the unecessary calls to readFromClient every ms
+				Thread.sleep(500);
+				readFromClient();
+			}
+			catch (InterruptedException e){}
+		}
         controlThread = null;
 	}
 	
@@ -78,24 +84,19 @@ public class ConnectionHandler implements Runnable
 			userName = ((String) in.readObject()).toLowerCase();
 
 			// need a unique username
-			if (serv.getConnectedUsers().contains(userName)) 
-			{
-				out.writeObject("message");
-				out.writeObject(new Message("SERVER", userName, "That username is already being used."
-					+ " Please try again with a new name:\nconnect newUsername"));
-				return;
-			}
-
-			// add the user
-			serv.addUser(userName, this, id);
-
-			// tell the user who is online
-			serv.addMessage(new Message("SERVER", userName, 
-					"Currently online: " + serv.getConnectedUsers().toString()));
+			if (!checkName(userName)) return;
 
 			// notify online users that this user connected using the 'all' group
 			serv.addMessage(new Message("SERVER", "all", 
 			userName + " has entered the chat"));
+
+			// add the user
+			serv.addUser(userName, this, id);
+
+			// welcome/tell the user who is online
+			serv.addMessage(new Message("SERVER", userName, 
+					"Welcome to TerminalChat! Currently online: " 
+					+ serv.getConnectedUsers().toString()));
 			
 			ms.start(); // we can start the sender after the user is added
 		}
@@ -142,14 +143,39 @@ public class ConnectionHandler implements Runnable
 		try
 		{
 			String groupName = (String) in.readObject();
+
+			// need a unique groupName
+			if (!checkName(groupName)) return;
+
 			List<String> members = new LinkedList<>();
-			for (String m : ((String) in.readObject()).trim().split(" ")) members.add(m);
+
+			// add members to the group. make sure the creator is the first person listed
+			members.add(userName);
+			for (String m : ((String) in.readObject()).trim().split(" ")) 
+				if (!m.equals(userName)) members.add(m);
 			serv.addGroup(groupName, members);
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
 			// ignore for now
 		}
+	}
+
+	private boolean checkName(String name) throws IOException
+	{
+		// Will return true if the name is available, false otherwise. This
+		// will also message the user, telling them to try with another name
+		// Ideally, we would have a list of reserved names (including server now) 
+		// that we would test these names against.
+		if (serv.getConnectedUsers().contains(name) || serv.getGroupNames().contains(name) 
+			|| name.equals("server")) 
+		{
+			out.writeObject("message");
+			out.writeObject(new Message("SERVER", userName,
+				"The name '" + name +"' is unavailable. Please try again.\n"));
+			return false;
+		}
+		return true;
 	}
 
 	public void start()
@@ -166,6 +192,12 @@ public class ConnectionHandler implements Runnable
 	{
 		keepRunning = false;
 		ms.stop();
+		try
+		{
+			in.close();
+			out.close();
+		} 
+		catch (IOException e) {}
 	}
 
 	private class MessageSender implements Runnable
@@ -179,7 +211,7 @@ public class ConnectionHandler implements Runnable
 			{
 				while (keepRunning)
 				{
-                    // Thread.sleep(1000); // wait before sending anything
+                    Thread.sleep(500); // wait so that we don't spam access to messages map
                     List<Message> msgs = serv.getMessagesForUser(id);
                     if (msgs.isEmpty()) continue;
 					for (Message m : msgs)
@@ -188,9 +220,9 @@ public class ConnectionHandler implements Runnable
 						out.writeObject(m);
 					}
 				}
-				out.close();
+				msgThread = null;
 			}
-			catch (IOException e)
+			catch (IOException | InterruptedException e)
 			{
 				// ignore for now
 			} 

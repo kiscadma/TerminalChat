@@ -66,9 +66,8 @@ public class Server implements Runnable
 						"you were added to the " + groupName + " group by " + memberNames.get(0)));
 		}
         groups.put(groupName, new Group(groupName, members));
-        System.out.print("SERVER: created group " + groupName + " with " + memberNames.size() + " members:");
-        for (String s : memberNames) System.out.print(" " + s);
-        System.out.println();
+		System.out.println("SERVER: created group " + groupName + " with " 
+			+ memberNames.size() + " members: " + memberNames);
     }
     
     public void removeUser(int userID)
@@ -85,20 +84,28 @@ public class Server implements Runnable
         // check if this is a group message
         if (groups.containsKey(recipient))
         {
+			Group g = groups.get(recipient);
+
+			// users can only message groups that they are in. SERVER can send to anyone
+			if (!sender.equals("SERVER") && !g.getMembers().containsKey(userIDs.get(sender)))
+			{
+				addMessage(new Message("SERVER", sender, 
+						"you do not have permission to message the " + recipient + " group."));
+				return;
+			}
+
 			// recipient is the groupName
 			m.sender = "[" + recipient + "] " + m.sender;
-			Map<Integer, String> members = groups.get(recipient).getMembers();
-			System.out.print("SERVER: " + sender + " messaged the '" + recipient + "' group: ");
-
+			Map<Integer, String> members = g.getMembers();
+			
 			// iterate through group members, messaging everyone except the sender
 			for (Integer id : members.keySet())
 			{
-				String name = members.get(id);
-				if (name.equals(sender)) continue;
-				System.out.print(name + " ");
+				if (members.get(id).equals(sender)) continue;
 				messages.get(id).add(m);
 			}
-            System.out.println();
+			System.out.println("SERVER: " + sender + " messaged the '" + recipient + "' group: " 
+				+ g.getMembers().values());
         }
         else // not a group message. let's add the message to the user's list
         {
@@ -107,9 +114,7 @@ public class Server implements Runnable
 
             int receiverID = userIDs.get(recipient);
 			messages.get(receiverID).add(m);
-			
-			if (!m.sender.equals("SERVER")) 
-				System.out.println("SERVER: " + m.sender + " messaged " + recipient);
+			System.out.println("SERVER: " + m.sender + " messaged " + recipient);
         }
 	}
 	
@@ -126,9 +131,12 @@ public class Server implements Runnable
 
 	public List<String> getConnectedUsers()
 	{
-		List<String> users = new LinkedList<>();
-		for (String name : groups.get("all").getMembers().values()) users.add(name);
-		return users;
+		return new LinkedList<>(groups.get("all").getMembers().values());
+	}
+
+	public List<String> getGroupNames()
+	{
+		return new LinkedList<>(groups.keySet());
 	}
 
 	public void run()
