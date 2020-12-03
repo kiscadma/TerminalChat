@@ -123,11 +123,12 @@ public class ConnectionHandler implements Runnable
 	{
 		try
 		{
+			serv.removeUser(id);
+
 			// notify online users that this user is disconnecting using the 'all' group
 			serv.addMessage(new Message("SERVER", "all", 
 					userName + " has left the chat"));
 
-			serv.removeUser(id);
 			out.writeObject("disconnect"); // echo disconnect back to the user
 			in.close();
 			stop();

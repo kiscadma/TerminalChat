@@ -12,6 +12,7 @@ public class Client implements Runnable
 	private Socket s;
 	private ObjectInputStream in;
 	private ObjectOutputStream out;
+	private BufferedReader keyboard;
 	private String name;
     private MessageReceiver mr;
     
@@ -32,18 +33,18 @@ public class Client implements Runnable
             connect(name);
             mr.start();
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            String[] line;
+            keyboard = new BufferedReader(new InputStreamReader(System.in));
+			String[] line;
             String command;
 
             do
             {
-                line = in.readLine().split(" ");
+                line = keyboard.readLine().split(" ");
                 command = line[0];
 				if      (command.toLowerCase().equals("disconnect")) disconnect();
 				else if (command.toLowerCase().equals("connect")) connect(line[1]);
                 else if (command.toLowerCase().equals("msg")) sendMessage(line);
-                else if (command.toLowerCase().equals("creategroup")) createGroup(line);
+				else if (command.toLowerCase().equals("creategroup")) createGroup(line);
             } while (keepRunning);
         }
         catch (IOException e)
@@ -120,8 +121,9 @@ public class Client implements Runnable
 			try
 			{
 				Message m = (Message) in.readObject();
+				// System.out.print ('\f');
 				System.out.print("\n\n> "+m.sender+": " + m.content +"\n\n> ");
-			} 
+			}
 			catch (ClassNotFoundException | IOException e)
 			{
 				// ignore for now
