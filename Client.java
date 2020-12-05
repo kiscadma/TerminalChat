@@ -15,19 +15,19 @@ public class Client implements Runnable
 	private ObjectOutputStream out;
 	private BufferedReader keyboard;
 	private String name;
-    private MessageReceiver mr;
+	private MessageReceiver mr;
 
     public Client(String name, String host, int port) throws IOException
     {
-        this.name = name;
+		this.name = name;
         s = new Socket(host, port);
         out = new ObjectOutputStream(s.getOutputStream());
         in = new ObjectInputStream(s.getInputStream());
 		mr = new MessageReceiver();
 		line = "";
 	}
-
-    public void run()
+	
+	public void run()
     {
         try
         {
@@ -35,36 +35,46 @@ public class Client implements Runnable
             connect(name);
             mr.start();
 
-            keyboard = new BufferedReader(new InputStreamReader(System.in));
-			String[] lineArr;
+			keyboard = new BufferedReader(new InputStreamReader(System.in));
 			char c;
-            String command;
-
+			String[] lineArr;
+			String command;
+			
             do
             {
+				line = "";				
+				System.out.print("\n> "); System.out.flush();
+
 				c = (char) keyboard.read();
 				while (c != '\n')
 				{
 					line += c;
 					c = (char) keyboard.read();
 				}
-
 				lineArr = line.split(" ");
-				line = "";
 
                 command = lineArr[0];
 				if      (command.toLowerCase().equals("disconnect")) disconnect();
 				else if (command.toLowerCase().equals("connect")) connect(lineArr[1]);
                 else if (command.toLowerCase().equals("msg")) sendMessage(lineArr);
 				else if (command.toLowerCase().equals("creategroup")) createGroup(lineArr);
-				System.out.print("\n> ");
+				else if (command.toLowerCase().equals("poll")) poll(lineArr);
             } while (keepRunning);
         }
         catch (IOException e)
         {
-            // ignore for now
+			e.printStackTrace();
         }
-    }
+	}
+	
+	private void poll(String[] lineArr) throws IOException
+	{
+		String msg = "";
+        for (int i = 2; i < lineArr.length; i++) msg += " "+lineArr[i];
+		out.writeObject("poll");
+		out.writeObject(lineArr[1]); // groupname
+		out.writeObject(msg.toLowerCase().trim());
+	}
 
 	private void sendMessage(String[] lineArr)
 	{
@@ -134,14 +144,12 @@ public class Client implements Runnable
 			try
 			{
 				Message m = (Message) in.readObject();
-
-				// remove whatever is currently in the line above
+				
+				// remove the "> " above
 				System.out.print(String.format("\033[%dA", 1)); // Move up 1 line
 				System.out.print("\033[2K"); // Erase line content
 				
-				System.out.println("\n> "+m.sender+": " + m.content);
-				System.out.flush();
-				System.out.print("\n> " + line);
+				System.out.print("\n> " + m.sender + ": " + m.content + "\n\n> ");
 				System.out.flush();
 			}
 			catch (ClassNotFoundException | IOException e)
@@ -189,7 +197,7 @@ public class Client implements Runnable
 		// get command line args
 		String name = (args.length > 0) ? args[0].toLowerCase() : System.getProperty("user.name");
 		String host = (args.length > 1) ? args[1] : "localhost"; 
-		int    port = (args.length > 2) ? Integer.parseInt(args[2]) : 46200; //Server.PORT;
+		int    port = (args.length > 2) ? Integer.parseInt(args[2]) : 5045; //Server.PORT;
         
         Client c = new Client(name, host, port);
         c.start();

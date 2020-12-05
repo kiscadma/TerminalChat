@@ -70,6 +70,7 @@ public class ConnectionHandler implements Runnable
 			else if (command.toLowerCase().equals("message")) handleMessage();
 			else if (command.toLowerCase().equals("disconnect")) handleDisconnect();
 			else if (command.toLowerCase().equals("creategroup")) handleCreateGroup();
+			else if (command.toLowerCase().equals("poll")) handlePoll();
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
@@ -155,6 +156,40 @@ public class ConnectionHandler implements Runnable
 			for (String m : ((String) in.readObject()).trim().split(" ")) 
 				if (!m.equals(userName)) members.add(m);
 			serv.addGroup(groupName, members);
+		}
+		catch (ClassNotFoundException | IOException e)
+		{
+			// ignore for now
+		}
+	}
+
+	private void handlePoll()
+	{
+		try
+		{
+			String groupName = (String) in.readObject();
+
+			// need a unique groupName
+			if (!serv.getGroupNames().contains(groupName))
+			{
+				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + '"'));
+				return;
+			}
+
+			String msg = ((String) in.readObject()).toLowerCase().trim();
+			boolean isValid;
+			if (msg.equals("yes") || msg.equals("no")) 
+			{
+				isValid = serv.voteOnPoll(groupName, msg.equals("yes"), id);
+				if (!isValid) 
+					serv.addMessage(new Message("SERVER", userName, "Unable to vote on a poll for the " + groupName + " group."));
+			} 
+			else
+			{
+				isValid = serv.createPoll(groupName, msg, id);
+				if (!isValid) 
+					serv.addMessage(new Message("SERVER", userName, "Unable to create a poll for the " + groupName + " group."));
+			}			
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
