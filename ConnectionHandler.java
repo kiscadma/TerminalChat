@@ -5,8 +5,6 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 
-import jdk.internal.net.http.websocket.MessageEncoder;
-
 /**
  * ConnectionHandler class. This is created using a socket connection from
  * a server. This will sit in the run method reading commands and handling
@@ -68,11 +66,11 @@ public class ConnectionHandler implements Runnable
 		try
 		{
 			String command = (String) in.readObject();
-			if      (command.toLowerCase().equals("connect")) handleConnect();
-			else if (command.toLowerCase().equals("message")) handleMessage();
-			else if (command.toLowerCase().equals("disconnect")) handleDisconnect();
-			else if (command.toLowerCase().equals("creategroup")) handleCreateGroup();
-			else if (command.toLowerCase().equals("poll")) handlePoll();
+			if      (command.equalsIgnoreCase("connect")) handleConnect();
+			else if (command.equalsIgnoreCase("message")) handleMessage();
+			else if (command.equalsIgnoreCase("disconnect")) handleDisconnect();
+			else if (command.equalsIgnoreCase("creategroup")) handleCreateGroup();
+			else if (command.equalsIgnoreCase("poll")) handlePoll();
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
@@ -235,10 +233,11 @@ public class ConnectionHandler implements Runnable
 			out.writeObject("message");
 			out.writeObject(new Message("SERVER", userName, "The server is shutting down. Have a nice day!"));
 			out.writeObject("disconnect");
+			out.flush();
 			in.close();
 			out.close();
-		} 
-		catch (IOException e) {}
+		} catch (IOException e) {
+		}
 	}
 
 	private class MessageSender implements Runnable
@@ -257,8 +256,10 @@ public class ConnectionHandler implements Runnable
 					if (msgs.isEmpty()) continue;
 					for (Message m : msgs)
 					{
+						System.out.println("need to send a message:" + m.content);
 						if (m.sender.equals("SERVER") && m.content.equals("SHUTDOWN"))
 						{
+							System.out.println("shutting down");
 							keepRunning = false;
 							continue;
 						}

@@ -43,11 +43,18 @@ public class Client implements Runnable
 				line = keyboard.readLine();	
 				lineArr = line.split(" ");
 
-                command = lineArr[0];
-				if      (command.toLowerCase().equals("disconnect")) disconnect();
-				else if (command.toLowerCase().equals("connect")) connect(lineArr[1]);
-                else if (command.toLowerCase().equals("msg")) sendMessage(lineArr);
-				else if (command.toLowerCase().equals("creategroup")) createGroup(lineArr);
+				command = lineArr[0];
+				if (command.equalsIgnoreCase("disconnect") || command.equalsIgnoreCase("exit"))
+					disconnect();
+				else if (command.equalsIgnoreCase("connect") || command.equalsIgnoreCase("c"))
+					connect(lineArr[1]);
+				else if (command.equalsIgnoreCase("msg") || command.equalsIgnoreCase("m"))
+					sendMessage(lineArr);
+				else if (command.equalsIgnoreCase("creategroup") || command.equalsIgnoreCase("cg"))
+					createGroup(lineArr);
+				else if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("h"))
+					displayHelp();
+
 				else if (command.toLowerCase().equals("poll")) poll(lineArr);
             } while (keepRunning);
         }
@@ -65,7 +72,19 @@ public class Client implements Runnable
 		out.writeObject(lineArr[1]); // groupname
 		out.writeObject(msg.toLowerCase().trim());
 	}
+	private void displayHelp() {
+		System.out.println("\t***Terminal Chat Help Page***");
+		System.out.println("\tSupported Commands:");
+		System.out.printf("\t%-40s %s\n", "disconnect ", "Disconnect from the server");
+		System.out.printf("\t%-40s %s\n", "connect [name] ", "Connect with a new name");
+		System.out.printf("\t%-40s %s\n", "msg [user] [message] ", "Send a message to a user");
+		System.out.printf("\t%-40s %s\n", "msg all [message]  ", "Send a message to everyone");
+		System.out.printf("\t%-40s %s\n", "msg [group name] ", "Send a group message");
+		System.out.printf("\t%-40s %s\n", "creategroup [group name] [user] ...", "Create a group with users ");
+		System.out.printf("\t%-40s %s\n", "poll ", "display the current polls");//TODO: correct
+		System.out.printf("\t%-40s %s\n", "help ", "Display this help page");
 
+	}
 	private void sendMessage(String[] lineArr)
 	{
 		try
@@ -177,6 +196,7 @@ public class Client implements Runnable
 		public void stop()
 		{
 			keepRunning = false;
+			System.exit(0);
 		}
 	}
 
