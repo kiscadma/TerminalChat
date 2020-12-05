@@ -8,7 +8,6 @@ import java.net.Socket;
 public class Client implements Runnable
 {
 	private volatile boolean keepRunning;
-	private volatile String line;
     private Thread controlThread;
 	private Socket s;
 	private ObjectInputStream in;
@@ -24,7 +23,6 @@ public class Client implements Runnable
         out = new ObjectOutputStream(s.getOutputStream());
         in = new ObjectInputStream(s.getInputStream());
 		mr = new MessageReceiver();
-		line = "";
 	}
 	
 	public void run()
@@ -36,21 +34,13 @@ public class Client implements Runnable
             mr.start();
 
 			keyboard = new BufferedReader(new InputStreamReader(System.in));
-			char c;
 			String[] lineArr;
-			String command;
+			String command, line;
 			
             do
             {
-				line = "";				
 				System.out.print("\n> "); System.out.flush();
-
-				c = (char) keyboard.read();
-				while (c != '\n')
-				{
-					line += c;
-					c = (char) keyboard.read();
-				}
+				line = keyboard.readLine();	
 				lineArr = line.split(" ");
 
                 command = lineArr[0];
@@ -114,8 +104,6 @@ public class Client implements Runnable
     private void disconnect() throws IOException
 	{
         out.writeObject("disconnect");
-        keepRunning = false;
-		mr.stop();
 	}
 
 	private void connect(String userName) throws IOException

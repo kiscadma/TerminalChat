@@ -5,6 +5,8 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 
+import jdk.internal.net.http.websocket.MessageEncoder;
+
 /**
  * ConnectionHandler class. This is created using a socket connection from
  * a server. This will sit in the run method reading commands and handling
@@ -178,13 +180,13 @@ public class ConnectionHandler implements Runnable
 
 			String msg = ((String) in.readObject()).toLowerCase().trim();
 			boolean isValid;
-			if (msg.equals("yes") || msg.equals("no")) 
+			if (msg.equals("yes") || msg.equals("no")) // this must be a poll vote
 			{
 				isValid = serv.voteOnPoll(groupName, msg.equals("yes"), id);
 				if (!isValid) 
 					serv.addMessage(new Message("SERVER", userName, "Unable to vote on a poll for the " + groupName + " group."));
 			} 
-			else
+			else // it is a poll question
 			{
 				isValid = serv.createPoll(groupName, msg, id);
 				if (!isValid) 
@@ -227,9 +229,12 @@ public class ConnectionHandler implements Runnable
 	public void stop()
 	{
 		keepRunning = false;
-		ms.stop();
+		ms.stopSending();
 		try
 		{
+			out.writeObject("message");
+			out.writeObject(new Message("SERVER", userName, "The server is shutting down. Have a nice day!"));
+			out.writeObject("disconnect");
 			in.close();
 			out.close();
 		} 
@@ -249,14 +254,20 @@ public class ConnectionHandler implements Runnable
 				{
                     Thread.sleep(500); // wait so that we don't spam access to messages map
                     List<Message> msgs = serv.getMessagesForUser(id);
-                    if (msgs.isEmpty()) continue;
+					if (msgs.isEmpty()) continue;
 					for (Message m : msgs)
 					{
+						if (m.sender.equals("SERVER") && m.content.equals("SHUTDOWN"))
+						{
+							keepRunning = false;
+							continue;
+						}
 						out.writeObject("message");
 						out.writeObject(m);
 					}
 				}
 				msgThread = null;
+				stop();
 			}
 			catch (IOException | InterruptedException e)
 			{
@@ -274,7 +285,7 @@ public class ConnectionHandler implements Runnable
 			}
 		}
 		
-		public void stop()
+		public void stopSending()
 		{
 			keepRunning = false;
 			if (msgThread != null) msgThread.interrupt();

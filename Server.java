@@ -208,6 +208,7 @@ public class Server implements Runnable
 	{
 		keepRunning = false;
 		// send remaining messages and do other stopping stuff
+		addMessage(new Message("SERVER", "all", "SHUTDOWN"));
 	}
 
 	public static void main(String[] args)
