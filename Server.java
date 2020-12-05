@@ -205,19 +205,21 @@ public class Server implements Runnable
 		}
 	}
 	
-	public void stop()
+	public void stop() throws InterruptedException
 	{
+		System.out.println("SERVER: Shutting down in 5 seconds.");
+		System.out.flush();
 		addMessage(new Message("SERVER", "all", "SHUTDOWN"));
+		Thread.sleep(5000); // wait for a second before stopping the server
 		keepRunning = false;
 	}
 
-	public static void main(String[] args)
+	public static void main(String[] args) throws InterruptedException
 	{
 		Server s = new Server();
 		s.start();
 		Scanner sc = new Scanner(System.in);
 		sc.nextLine();
-		
 		s.stop();
 		sc.close();
 		System.exit(0);

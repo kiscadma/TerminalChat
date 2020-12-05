@@ -79,9 +79,12 @@ public class Client implements Runnable
 		System.out.printf("\t%-40s %s\n", "connect [name] ", "Connect with a new name");
 		System.out.printf("\t%-40s %s\n", "msg [user] [message] ", "Send a message to a user");
 		System.out.printf("\t%-40s %s\n", "msg all [message]  ", "Send a message to everyone");
-		System.out.printf("\t%-40s %s\n", "msg [group name] ", "Send a group message");
+		System.out.printf("\t%-40s %s\n", "msg [group name] [message]", "Send a group message");
 		System.out.printf("\t%-40s %s\n", "creategroup [group name] [user] ...", "Create a group with users ");
-		System.out.printf("\t%-40s %s\n", "poll ", "display the current polls");//TODO: correct
+		System.out.printf("\t%-40s %s\n", "poll [group name] [question]", "Create a poll for a group");
+		System.out.printf("\t%-40s %s\n", "poll all [question]", "Create a poll for all");
+		System.out.printf("\t%-40s %s\n", "poll [group name] [yes/no]", "Vote yes/no on a poll for a group");
+		System.out.printf("\t%-40s %s\n", "poll all [yes/no]", "Vote yes/no on a poll for a group");
 		System.out.printf("\t%-40s %s\n", "help ", "Display this help page");
 
 	}

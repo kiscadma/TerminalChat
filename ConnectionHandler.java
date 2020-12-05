@@ -254,25 +254,25 @@ public class ConnectionHandler implements Runnable
                     Thread.sleep(500); // wait so that we don't spam access to messages map
                     List<Message> msgs = serv.getMessagesForUser(id);
 					if (msgs.isEmpty()) continue;
+
 					for (Message m : msgs)
 					{
-						System.out.println("need to send a message:" + m.content);
-						if (m.sender.equals("SERVER") && m.content.equals("SHUTDOWN"))
+						// check for the official server shutdown message
+						if (m.sender.equals("[all] SERVER") && m.content.equals("SHUTDOWN"))
 						{
-							System.out.println("shutting down");
 							keepRunning = false;
-							continue;
+							continue; // continue so we don't send this internal server message to client
 						}
 						out.writeObject("message");
 						out.writeObject(m);
 					}
 				}
-				msgThread = null;
 				stop();
+				msgThread = null;
 			}
 			catch (IOException | InterruptedException e)
 			{
-				// ignore for now
+				// e.printStackTrace();
 			} 
 		}
 		
