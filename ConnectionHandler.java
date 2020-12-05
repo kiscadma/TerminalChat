@@ -66,11 +66,11 @@ public class ConnectionHandler implements Runnable
 		try
 		{
 			String command = (String) in.readObject();
-			if      (command.toLowerCase().equals("connect")) handleConnect();
-			else if (command.toLowerCase().equals("message")) handleMessage();
-			else if (command.toLowerCase().equals("disconnect")) handleDisconnect();
-			else if (command.toLowerCase().equals("creategroup")) handleCreateGroup();
-			else if (command.toLowerCase().equals("poll")) handlePoll();
+			if      (command.equalsIgnoreCase("connect")) handleConnect();
+			else if (command.equalsIgnoreCase("message")) handleMessage();
+			else if (command.equalsIgnoreCase("disconnect")) handleDisconnect();
+			else if (command.equalsIgnoreCase("creategroup")) handleCreateGroup();
+			else if (command.equalsIgnoreCase("poll")) handlePoll();
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
@@ -228,12 +228,13 @@ public class ConnectionHandler implements Runnable
 	{
 		keepRunning = false;
 		ms.stop();
-		try
-		{
+		try {
+			out.writeObject("disconnect");
+			out.flush();
 			in.close();
 			out.close();
-		} 
-		catch (IOException e) {}
+		} catch (IOException e) {
+		}
 	}
 
 	private class MessageSender implements Runnable

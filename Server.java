@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Server implements Runnable
 {
 	public static final int PORT = 5045;
-	private volatile boolean keepRunning;
+	public volatile boolean keepRunning;
     private Map<String, Integer> userIDs; // userName : id
     private Map<String, Group> groups; // groupName : Group
 	private Map<Integer, List<Message>> messages; // id : [messages intended for them]
@@ -214,5 +215,11 @@ public class Server implements Runnable
 	{
 		Server s = new Server();
 		s.start();
+		Scanner sc = new Scanner(System.in);
+		sc.nextLine();
+		
+		s.stop();
+		sc.close();
+		System.exit(0);
 	}
 }
