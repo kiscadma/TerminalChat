@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+
 public class Client implements Runnable
 {
 	private volatile boolean keepRunning;
@@ -15,6 +16,7 @@ public class Client implements Runnable
 	private BufferedReader keyboard;
 	private String name;
 	private MessageReceiver mr;
+	private String defaultSendTo;
 
     public Client(String name, String host, int port) throws IOException
     {
@@ -23,6 +25,7 @@ public class Client implements Runnable
         out = new ObjectOutputStream(s.getOutputStream());
         in = new ObjectInputStream(s.getInputStream());
 		mr = new MessageReceiver();
+		defaultSendTo = "all";
 	}
 	
 	public void run()
@@ -44,18 +47,26 @@ public class Client implements Runnable
 				lineArr = line.split(" ");
 
 				command = lineArr[0];
-				if (command.equalsIgnoreCase("disconnect") || command.equalsIgnoreCase("exit"))
+				if (command.equalsIgnoreCase("disconnect") || command.equalsIgnoreCase("exit") || command.equalsIgnoreCase("q"))
 					disconnect();
 				else if (command.equalsIgnoreCase("connect") || command.equalsIgnoreCase("c"))
 					connect(lineArr[1]);
 				else if (command.equalsIgnoreCase("msg") || command.equalsIgnoreCase("m"))
-					sendMessage(lineArr);
+					sendMessage(lineArr,false);
+				else if (command.equalsIgnoreCase("reply") || command.equalsIgnoreCase("r"))
+					sendMessage(lineArr, true);
 				else if (command.equalsIgnoreCase("creategroup") || command.equalsIgnoreCase("cg"))
 					createGroup(lineArr);
-				else if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("h"))
+				else if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("h") || command.equalsIgnoreCase("commands"))
 					displayHelp();
-
-				else if (command.toLowerCase().equals("poll")) poll(lineArr);
+				else if (command.toLowerCase().equals("poll")) 
+					poll(lineArr);
+				else if (command.equalsIgnoreCase("list"))
+					getUserList(lineArr);
+				else if (command.equalsIgnoreCase("mygroups"))
+					getMyGroups();
+				else
+					System.out.println("Try 'help'");
             } while (keepRunning);
         }
         catch (IOException e)
@@ -63,7 +74,21 @@ public class Client implements Runnable
 			e.printStackTrace();
         }
 	}
-	
+	private void getUserList(String[] group) throws IOException
+	{
+		out.writeObject("list");
+		if (group.length < 2){
+			out.writeObject("all");
+		}else
+		out.writeObject(group[1]);
+
+	}
+
+	private void getMyGroups() throws IOException
+	{
+		out.writeObject("mygroups");
+
+	}
 	private void poll(String[] lineArr) throws IOException
 	{
 		String msg = "";
@@ -73,7 +98,7 @@ public class Client implements Runnable
 		out.writeObject(msg.toLowerCase().trim());
 	}
 	private void displayHelp() {
-		System.out.println("\t***Terminal Chat Help Page***");
+		System.out.println("\t\t\t\u001B[35m***Terminal Chat Help Page***"+"\u001B[0m");
 		System.out.println("\tSupported Commands:");
 		System.out.printf("\t%-40s %s\n", "disconnect ", "Disconnect from the server");
 		System.out.printf("\t%-40s %s\n", "connect [name] ", "Connect with a new name");
@@ -81,6 +106,8 @@ public class Client implements Runnable
 		System.out.printf("\t%-40s %s\n", "msg all [message]  ", "Send a message to everyone");
 		System.out.printf("\t%-40s %s\n", "msg [group name] [message]", "Send a group message");
 		System.out.printf("\t%-40s %s\n", "creategroup [group name] [user] ...", "Create a group with users ");
+		System.out.printf("\t%-40s %s\n", "list [groupname] ", "Display users in this group");
+		System.out.printf("\t%-40s %s\n", "mygroups ", "Display groups you are a part of");
 		System.out.printf("\t%-40s %s\n", "poll [group name] [question]", "Create a poll for a group");
 		System.out.printf("\t%-40s %s\n", "poll all [question]", "Create a poll for all");
 		System.out.printf("\t%-40s %s\n", "poll [group name] [yes/no]", "Vote yes/no on a poll for a group");
@@ -88,14 +115,20 @@ public class Client implements Runnable
 		System.out.printf("\t%-40s %s\n", "help ", "Display this help page");
 
 	}
-	private void sendMessage(String[] lineArr)
+	private void sendMessage(String[] lineArr, boolean reply)
 	{
 		try
 		{
-            String receiver = lineArr[1];
+
+			
+			int i = 1;
+			if (!reply){
+				defaultSendTo = lineArr[1];
+				i ++;
+			}
             String content = "";
-            for (int i = 2; i < lineArr.length; i++) content += " "+lineArr[i];
-			Message m = new Message(name, receiver, content.trim());
+            for (; i < lineArr.length; i++) content += " "+lineArr[i];
+			Message m = new Message(name, defaultSendTo, content.trim());
 			out.writeObject("message");
 			out.writeObject(m);
 		}
@@ -159,7 +192,18 @@ public class Client implements Runnable
 				System.out.print(String.format("\033[%dA", 1)); // Move up 1 line
 				System.out.print("\033[2K"); // Erase line content
 				
-				System.out.print("\n> " + m.sender + ": " + m.content + "\n\n> ");
+				if (m.sender.split(" ")[m.sender.split(" ").length-1].equals("SERVER")) {
+					System.out.print("\n> \u001B[43m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
+				}else{
+					// System.out.println(m.sender);
+					if (m.sender.contains("[")){ //Group
+						// System.out.println(m.sender);
+						defaultSendTo = m.sender.split("\\[")[1].split("\\]")[0];
+					}else //Private message
+						defaultSendTo = m.sender; //.split(" ")[m.sender.split(" ").length-1]
+					System.out.print("\n> \u001B[45m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
+
+				}
 				System.out.flush();
 			}
 			catch (ClassNotFoundException | IOException e)
@@ -199,6 +243,7 @@ public class Client implements Runnable
 		public void stop()
 		{
 			keepRunning = false;
+			System.out.println("\n");
 			System.exit(0);
 		}
 	}

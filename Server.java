@@ -167,9 +167,24 @@ public class Server implements Runnable
 		return new LinkedList<>(groups.get("all").getMembers().values());
 	}
 
+	public List<String> getGroup(String groupName)
+	{
+		return new LinkedList<>(groups.get(groupName).getMembers().values());
+	}
 	public List<String> getGroupNames()
 	{
 		return new LinkedList<>(groups.keySet());
+	}
+
+	public List<String>getGroupsFor(String user)
+	{
+		LinkedList<String> groupsListret = new LinkedList<String>();
+		for (Group g : groups.values()){
+			if (g.getMembers().containsValue(user)){
+				groupsListret.add(g.getName());
+			}
+		}
+		return groupsListret;
 	}
 
 	public void run()

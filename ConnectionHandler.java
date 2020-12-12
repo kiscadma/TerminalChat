@@ -71,6 +71,14 @@ public class ConnectionHandler implements Runnable
 			else if (command.equalsIgnoreCase("disconnect")) handleDisconnect();
 			else if (command.equalsIgnoreCase("creategroup")) handleCreateGroup();
 			else if (command.equalsIgnoreCase("poll")) handlePoll();
+			else if (command.equalsIgnoreCase("listgroups"))
+				serv.addMessage(new Message("SERVER", userName, "Current groups: " + serv.getGroupNames().toString() ));
+			else if (command.equalsIgnoreCase("mygroups"))
+				serv.addMessage(new Message("SERVER",userName,"Your groups: " + serv.getGroupsFor(userName).toString()));
+			else if (command.equalsIgnoreCase("list")) {
+				String groupName = (String)in.readObject();
+				serv.addMessage(new Message("SERVER", userName, "Online in " + groupName + ": " + serv.getGroup( groupName).toString()) );				
+			}
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
