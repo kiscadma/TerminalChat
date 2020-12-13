@@ -103,8 +103,7 @@ public class Group
             } 
             catch (InterruptedException e) {}
 
-            serv.finishPoll(name, "The poll '" + pollQuestion + "' ended. The number of yes votes was " 
-                        + yesVotes + ". The number of no votes was " + noVotes + ".");
+            serv.finishPoll(name, "The poll '" + pollQuestion + "' ended. Yes [ " + yesVotes + " ] / No [ " + noVotes + " ].");
             pollQuestion = "";
             yesVotes = 0;
             noVotes = 0;
