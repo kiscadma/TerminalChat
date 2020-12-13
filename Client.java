@@ -4,7 +4,9 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Client implements Runnable
 {
@@ -17,7 +19,7 @@ public class Client implements Runnable
 	private String name;
 	private MessageReceiver mr;
 	private String defaultSendTo;
-
+	private Map<String, String> aliasMap;
     public Client(String name, String host, int port) throws IOException
     {
 		this.name = name;
@@ -26,6 +28,7 @@ public class Client implements Runnable
         in = new ObjectInputStream(s.getInputStream());
 		mr = new MessageReceiver();
 		defaultSendTo = "all";
+		this.aliasMap = Collections.synchronizedMap(new HashMap<String, String>());
 	}
 	
 	public void run()
@@ -45,7 +48,11 @@ public class Client implements Runnable
 				System.out.print("\n> "); System.out.flush();
 				line = keyboard.readLine();	
 				lineArr = line.split(" ");
-
+				for (int i = 1; i < lineArr.length; i++){
+					if (lineArr[i].charAt(0) == '$'){
+						lineArr[i] = aliasMap.get(lineArr[i].substring(1));
+					}
+				}
 				command = lineArr[0];
 				if (command.equalsIgnoreCase("disconnect") || command.equalsIgnoreCase("exit") || command.equalsIgnoreCase("q"))
 					disconnect();
@@ -65,6 +72,13 @@ public class Client implements Runnable
 					getUserList(lineArr);
 				else if (command.equalsIgnoreCase("mygroups"))
 					getMyGroups();
+				else if (command.equalsIgnoreCase("alias"))
+					setAlias(lineArr);
+				else if (command.equalsIgnoreCase("addtogroup")){
+
+				}else if (command.equalsIgnoreCase("leavegroup")) {
+
+				}
 				else
 					System.out.println("Try 'help'");
             } while (keepRunning);
@@ -86,6 +100,23 @@ public class Client implements Runnable
 	private void getMyGroups() throws IOException
 	{
 		out.writeObject("mygroups");
+	}
+
+	private void addtogroup(){
+
+	}
+
+	private void leaveGroup(String groupName)
+	{
+		out.writeObject("leavegroup");
+		out.writeObject(groupName);
+	}
+	private void setAlias(String[] line)
+	{
+		String actualName = line[1];
+		String alias = line[2];
+
+		aliasMap.put(alias,actualName);
 	}
 
 	private void poll(String[] lineArr) throws IOException
