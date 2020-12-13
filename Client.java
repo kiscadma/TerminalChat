@@ -75,9 +75,9 @@ public class Client implements Runnable
 				else if (command.equalsIgnoreCase("alias"))
 					setAlias(lineArr);
 				else if (command.equalsIgnoreCase("addtogroup")){
-
+					addtogroup(lineArr);
 				}else if (command.equalsIgnoreCase("leavegroup")) {
-
+					leaveGroup(lineArr[1]);
 				}
 				else
 					System.out.println("Try 'help'");
@@ -102,11 +102,19 @@ public class Client implements Runnable
 		out.writeObject("mygroups");
 	}
 
-	private void addtogroup(){
+	private void addtogroup(String[] line)throws IOException{
+		if (line.length >= 3){
+			out.writeObject("addtogroup");
+			out.writeObject(line[1]);
+			out.writeObject(line[2]);
+		}else{
+			displayHelp();
+		}
+		
 
 	}
 
-	private void leaveGroup(String groupName)
+	private void leaveGroup(String groupName)throws IOException
 	{
 		out.writeObject("leavegroup");
 		out.writeObject(groupName);
