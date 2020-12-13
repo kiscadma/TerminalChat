@@ -64,14 +64,9 @@ public class ConnectionHandler implements Runnable
 			else if (command.equalsIgnoreCase("poll")) handlePoll();
 			else if (command.equalsIgnoreCase("addtogroup")) handleAddToGroup();
 			else if (command.equalsIgnoreCase("leavegroup")) handleLeaveGroup();
-			else if (command.equalsIgnoreCase("listgroups"))
-				serv.addMessage(new Message("SERVER", userName, "Current groups: " + serv.getGroupNames().toString() ));
 			else if (command.equalsIgnoreCase("mygroups"))
-				serv.addMessage(new Message("SERVER",userName,"Your groups: " + serv.getGroupsFor(userName).toString()));
-			else if (command.equalsIgnoreCase("list")) {
-				String groupName = (String)in.readObject();
-				serv.addMessage(new Message("SERVER", userName, "Online in " + groupName + ": " + serv.getGroup( groupName).toString()) );				
-			}
+				serv.addMessage(new Message("SERVER",userName,"Your groups: " + serv.getGroupsForUser(userName).toString()));
+			else if (command.equalsIgnoreCase("listmembers")) handleListMembers();
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
@@ -172,7 +167,7 @@ public class ConnectionHandler implements Runnable
 		{
 			String groupName = (String) in.readObject();
 
-			// make sure the gorup exists
+			// make sure the group exists
 			if (!serv.getGroupNames().contains(groupName))
 			{
 				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + "'"));
@@ -193,6 +188,34 @@ public class ConnectionHandler implements Runnable
 				if (!isValid) 
 					serv.addMessage(new Message("SERVER", userName, "Unable to create a poll for the " + groupName + " group."));
 			}			
+		}
+		catch (ClassNotFoundException | IOException e)
+		{
+			// ignore for now
+		}
+	}
+
+	private void handleListMembers()
+	{
+		try
+		{
+			String groupName = (String) in.readObject();
+
+			// make sure the group exists
+			if (!serv.getGroupNames().contains(groupName))
+			{
+				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + "'"));
+				return;
+			}
+
+			// make sure the user is in the group
+			if (!serv.getGroup(groupName).contains(userName))
+			{
+				serv.addMessage(new Message("SERVER", userName, "You are not permitted to see the members of the '" + groupName + "' group"));
+				return;
+			}
+
+			serv.addMessage(new Message("SERVER", userName, "Members of " + groupName + ": " + serv.getGroup(groupName).toString()) );
 		}
 		catch (ClassNotFoundException | IOException e)
 		{

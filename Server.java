@@ -202,7 +202,7 @@ public class Server implements Runnable
 		return new LinkedList<>(groups.keySet());
 	}
 
-	public List<String>getGroupsFor(String user)
+	public List<String>getGroupsForUser(String user)
 	{
 		LinkedList<String> groupsListret = new LinkedList<String>();
 		for (Group g : groups.values()){

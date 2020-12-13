@@ -4,7 +4,6 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +27,7 @@ public class Client implements Runnable
         in = new ObjectInputStream(s.getInputStream());
 		mr = new MessageReceiver();
 		defaultSendTo = "all";
-		this.aliasMap = Collections.synchronizedMap(new HashMap<String, String>());
+		aliasMap = new HashMap<String, String>();
 	}
 	
 	public void run()
@@ -48,11 +47,11 @@ public class Client implements Runnable
 				System.out.print("\n> "); System.out.flush();
 				line = keyboard.readLine();	
 				lineArr = line.split(" ");
-				for (int i = 1; i < lineArr.length; i++){
-					if (lineArr[i].charAt(0) == '$'){
-						lineArr[i] = aliasMap.get(lineArr[i].substring(1));
-					}
-				}
+
+				// check for alias usage
+				for (int i = 1; i < lineArr.length; i++)
+					if (lineArr[i].charAt(0) == '$') lineArr[i] = aliasMap.get(lineArr[i]);
+
 				command = lineArr[0];
 				if (command.equalsIgnoreCase("disconnect") || command.equalsIgnoreCase("exit") || command.equalsIgnoreCase("q"))
 					disconnect();
@@ -92,7 +91,7 @@ public class Client implements Runnable
 
 	private void getUserList(String[] group) throws IOException
 	{
-		out.writeObject("list");
+		out.writeObject("listmembers");
 		if (group.length < 2) out.writeObject("all");
 		else out.writeObject(group[1]);
 	}
@@ -110,8 +109,6 @@ public class Client implements Runnable
 		}else{
 			displayHelp();
 		}
-		
-
 	}
 
 	private void leaveGroup(String groupName)throws IOException
@@ -122,9 +119,9 @@ public class Client implements Runnable
 	private void setAlias(String[] line)
 	{
 		String actualName = line[1];
-		String alias = line[2];
+		String alias = "$" + line[2];
 
-		aliasMap.put(alias,actualName);
+		aliasMap.put(alias, actualName);
 	}
 
 	private void poll(String[] lineArr) throws IOException
@@ -151,7 +148,12 @@ public class Client implements Runnable
 		System.out.printf("\t%-40s %s\n", "poll all [question]", "Create a poll for all");
 		System.out.printf("\t%-40s %s\n", "poll [group name] [yes/no]", "Vote yes/no on a poll for a group");
 		System.out.printf("\t%-40s %s\n", "poll all [yes/no]", "Vote yes/no on a poll for a group");
+		System.out.printf("\t%-40s %s\n", "alias [name] [alias]", "Set an alias for a user. The name can be replaced with $[alias]");
 		System.out.printf("\t%-40s %s\n", "help ", "Display this help page");
+
+		System.out.printf("\n\t%-40s\n", "Keyboard input persists through incoming messages. If a message is received"); 
+		System.out.printf("\t%-40s\n", "and displayed on top of your message, your original input can still be edited"
+						  + "\n\tand sent.");
 	}
 
 	private void sendMessage(String[] lineArr, boolean reply)
@@ -171,7 +173,7 @@ public class Client implements Runnable
 		}
 		catch (Exception e)
 		{
-			System.out.println("please use the following message format:\nmsg [receiver's name] [message content]");
+			System.out.println("Unable to send message. Use the 'help' command for information on how to send messages.");
 		}
     }
 
@@ -188,8 +190,7 @@ public class Client implements Runnable
 		}
 		catch (Exception e)
 		{
-			System.out.println("please use the following message format:\n"
-				+ "creategroup [group name] [group members delimited by spaces]");
+			System.out.println("Unable to create group. Use the 'help' command for information on how to create groups.");
 		}
     }
 
@@ -239,17 +240,25 @@ public class Client implements Runnable
 				System.out.print(String.format("\033[%dA", 1)); // Move up 1 line
 				System.out.print("\033[2K"); // Erase newline above current line
 				
-				if (m.sender.split(" ")[m.sender.split(" ").length-1].equals("SERVER")) {
+				if (m.sender.split(" ")[m.sender.split(" ").length-1].equals("SERVER")) // from SERVER
+				{ 
 					System.out.print("\n> \u001B[43m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
-				} else {
-					// System.out.println(m.sender);
-					if (m.sender.contains("[")){ //Group
-						// System.out.println(m.sender);
-						defaultSendTo = m.sender.split("\\[")[1].split("\\]")[0];
-					}else //Private message
-						defaultSendTo = m.sender; //.split(" ")[m.sender.split(" ").length-1]
-					System.out.print("\n> \u001B[45m\u001B[30m" + m.sender + "->" + m.receiver + "\u001B[0m: " + m.content + "\n\n> ");
+				} 
+				else if (m.sender.contains("[")) //Group
+				{ 
+					defaultSendTo = m.sender.split("\\[")[1].split("\\]")[0];
+					System.out.print("\n> \u001B[42m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
 				}
+				else if (m.sender.equals(name)) //message rebounding to user for confirmation it was sent to server
+				{
+					System.out.print("\n> \u001B[46m\u001B[30m" + m.sender + "->" + m.receiver + "\u001B[0m: " + m.content + "\n\n> ");
+				}
+				else //Private message from someone else
+				{
+					defaultSendTo = m.sender; //.split(" ")[m.sender.split(" ").length-1]
+					System.out.print("\n> \u001B[45m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
+				}
+				
 				System.out.flush();
 			}
 			catch (ClassNotFoundException | IOException e)
