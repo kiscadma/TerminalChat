@@ -171,6 +171,7 @@ public class Server implements Runnable
 	{
 		return new LinkedList<>(groups.get(groupName).getMembers().values());
 	}
+	
 	public List<String> getGroupNames()
 	{
 		return new LinkedList<>(groups.keySet());

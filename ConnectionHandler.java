@@ -22,9 +22,7 @@ public class ConnectionHandler implements Runnable
 	private ObjectOutputStream out;
 	private Server serv;
 
-	// TODO: add poll
 	// TODO: add/remove user from group
-	// TODO: help feature in client
 
 	// command to see who is online
 	// add notification saying that a user is offline when you try to message them

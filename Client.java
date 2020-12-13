@@ -72,23 +72,22 @@ public class Client implements Runnable
         catch (IOException e)
         {
 			e.printStackTrace();
+			disconnect();
         }
 	}
+
 	private void getUserList(String[] group) throws IOException
 	{
 		out.writeObject("list");
-		if (group.length < 2){
-			out.writeObject("all");
-		}else
-		out.writeObject(group[1]);
-
+		if (group.length < 2) out.writeObject("all");
+		else out.writeObject(group[1]);
 	}
 
 	private void getMyGroups() throws IOException
 	{
 		out.writeObject("mygroups");
-
 	}
+
 	private void poll(String[] lineArr) throws IOException
 	{
 		String msg = "";
@@ -119,8 +118,6 @@ public class Client implements Runnable
 	{
 		try
 		{
-
-			
 			int i = 1;
 			if (!reply){
 				defaultSendTo = lineArr[1];
@@ -156,9 +153,18 @@ public class Client implements Runnable
 		}
     }
 
-    private void disconnect() throws IOException
+    private void disconnect()
 	{
-        out.writeObject("disconnect");
+		try
+		{
+			out.writeObject("disconnect");
+			keepRunning = false;
+		}
+		catch (IOException e)
+		{
+			System.exit(-1);
+		}
+        
 	}
 
 	private void connect(String userName) throws IOException
@@ -181,6 +187,7 @@ public class Client implements Runnable
 	private class MessageReceiver implements Runnable
 	{
 		private Thread controlThread;
+		private volatile boolean keepReceiving;
 		
 		private void receiveMessage()
 		{
@@ -215,7 +222,7 @@ public class Client implements Runnable
 		public void run()
 		{
 			String command;
-			while (keepRunning)
+			while (keepReceiving)
 			{
 				try
 				{
@@ -234,7 +241,7 @@ public class Client implements Runnable
 		{
 			if (controlThread == null)
 			{
-				keepRunning = true;
+				keepReceiving = true;
 				controlThread = new Thread(this);
 				controlThread.start();
 			}		
@@ -242,8 +249,7 @@ public class Client implements Runnable
 		
 		public void stop()
 		{
-			keepRunning = false;
-			System.out.println("\n");
+			keepReceiving = false;
 			System.exit(0);
 		}
 	}
