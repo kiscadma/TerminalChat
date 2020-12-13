@@ -240,15 +240,14 @@ public class Client implements Runnable
 				
 				if (m.sender.split(" ")[m.sender.split(" ").length-1].equals("SERVER")) {
 					System.out.print("\n> \u001B[43m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
-				}else{
+				} else {
 					// System.out.println(m.sender);
 					if (m.sender.contains("[")){ //Group
 						// System.out.println(m.sender);
 						defaultSendTo = m.sender.split("\\[")[1].split("\\]")[0];
 					}else //Private message
 						defaultSendTo = m.sender; //.split(" ")[m.sender.split(" ").length-1]
-					System.out.print("\n> \u001B[45m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
-
+					System.out.print("\n> \u001B[45m\u001B[30m" + m.sender + "->" + m.receiver + "\u001B[0m: " + m.content + "\n\n> ");
 				}
 				System.out.flush();
 			}

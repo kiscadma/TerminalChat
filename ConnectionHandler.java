@@ -104,7 +104,7 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
-			System.out.println("Did not receive userName from user"); System.exit(0);
+			
 		}
 	}
 
@@ -113,11 +113,13 @@ public class ConnectionHandler implements Runnable
 		try
 		{
 			Message m = (Message) in.readObject();
+			out.writeObject("message");
+			out.writeObject(m);
 			serv.addMessage(m);
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
-			System.out.println("Did not receive userName from user"); System.exit(0);
+			// IGNORE
 		}
 	}
 
