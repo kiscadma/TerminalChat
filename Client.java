@@ -135,6 +135,7 @@ public class Client implements Runnable
 		out.writeObject(lineArr[1]); // groupname
 		out.writeObject(msg.toLowerCase().trim());
 	}
+
 	private void displayHelp() {
 		System.out.println("\t\t\t\u001B[35m***Terminal Chat Help Page***"+"\u001B[0m");
 		System.out.println("\tSupported Commands:");
@@ -151,8 +152,8 @@ public class Client implements Runnable
 		System.out.printf("\t%-40s %s\n", "poll [group name] [yes/no]", "Vote yes/no on a poll for a group");
 		System.out.printf("\t%-40s %s\n", "poll all [yes/no]", "Vote yes/no on a poll for a group");
 		System.out.printf("\t%-40s %s\n", "help ", "Display this help page");
-
 	}
+
 	private void sendMessage(String[] lineArr, boolean reply)
 	{
 		try
@@ -233,10 +234,10 @@ public class Client implements Runnable
 			try
 			{
 				Message m = (Message) in.readObject();
-				
-				// remove the "> " above
+			
+				System.out.print("\033[2K"); // Erase typing content
 				System.out.print(String.format("\033[%dA", 1)); // Move up 1 line
-				System.out.print("\033[2K"); // Erase line content
+				System.out.print("\033[2K"); // Erase newline above current line
 				
 				if (m.sender.split(" ")[m.sender.split(" ").length-1].equals("SERVER")) {
 					System.out.print("\n> \u001B[43m\u001B[30m" + m.sender + "\u001B[0m: " + m.content + "\n\n> ");
