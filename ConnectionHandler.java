@@ -21,13 +21,6 @@ public class ConnectionHandler implements Runnable
 	private ObjectInputStream in;
 	private ObjectOutputStream out;
 	private Server serv;
-
-	// TODO: add/remove user from group
-
-	// command to see who is online
-	// add notification saying that a user is offline when you try to message them
-	// saving stuff to file to stop and restart
-	// welcome messages and logging
 	
 	public ConnectionHandler(Socket sock, Server serv, int id) throws IOException
 	{
@@ -69,6 +62,8 @@ public class ConnectionHandler implements Runnable
 			else if (command.equalsIgnoreCase("disconnect")) handleDisconnect();
 			else if (command.equalsIgnoreCase("creategroup")) handleCreateGroup();
 			else if (command.equalsIgnoreCase("poll")) handlePoll();
+			else if (command.equalsIgnoreCase("addtogroup")) handleAddToGroup();
+			else if (command.equalsIgnoreCase("leavegroup")) handleLeaveGroup();
 			else if (command.equalsIgnoreCase("listgroups"))
 				serv.addMessage(new Message("SERVER", userName, "Current groups: " + serv.getGroupNames().toString() ));
 			else if (command.equalsIgnoreCase("mygroups"))
@@ -175,10 +170,10 @@ public class ConnectionHandler implements Runnable
 		{
 			String groupName = (String) in.readObject();
 
-			// need a unique groupName
+			// make sure the gorup exists
 			if (!serv.getGroupNames().contains(groupName))
 			{
-				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + '"'));
+				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + "'"));
 				return;
 			}
 
@@ -203,18 +198,64 @@ public class ConnectionHandler implements Runnable
 		}
 	}
 
+	private void handleAddToGroup()
+	{
+		try
+		{
+			String groupName = (String) in.readObject();
+
+			// make sure the gorup exists
+			if (!serv.getGroupNames().contains(groupName))
+			{
+				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + "'"));
+				return;
+			}
+
+			String newMemberName = (String) in.readObject();
+
+			serv.addUserToGroup(id, userName, groupName, newMemberName);
+		}
+		catch (ClassNotFoundException | IOException e)
+		{
+			// ignore for now
+		}
+	}
+
+	private void handleLeaveGroup()
+	{
+		try
+		{
+			String groupName = (String) in.readObject();
+
+			// make sure the gorup exists
+			if (!serv.getGroupNames().contains(groupName))
+			{
+				serv.addMessage(new Message("SERVER", userName, "There is no group with the name '" + groupName + "'"));
+				return;
+			}
+
+			serv.leaveGroup(id, userName, groupName);
+		}
+		catch (ClassNotFoundException | IOException e)
+		{
+			// ignore for now
+		}
+	}
+
 	private boolean checkName(String name) throws IOException
 	{
-		// Will return true if the name is available, false otherwise. This
-		// will also message the user, telling them to try with another name
-		// Ideally, we would have a list of reserved names (including server now) 
-		// that we would test these names against.
-		if (serv.getConnectedUsers().contains(name) || serv.getGroupNames().contains(name) 
-			|| name.equals("server")) 
+		if (serv.getConnectedUsers().contains(name) || serv.getGroupNames().contains(name) || name.equals("server")) 
 		{
 			out.writeObject("message");
 			out.writeObject(new Message("SERVER", userName,
 				"The name '" + name +"' is unavailable. Please try again.\n"));
+			return false;
+		}
+		else if (name.charAt(0) == '$')
+		{
+			out.writeObject("message");
+			out.writeObject(new Message("SERVER", userName,
+				"Usernames are not allowed to begin with the '$' character.\n"));
 			return false;
 		}
 		return true;

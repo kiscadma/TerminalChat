@@ -69,7 +69,32 @@ public class Server implements Runnable
         groups.put(groupName, new Group(groupName, members, this));
 		System.out.println("SERVER: created group " + groupName + " with " 
 			+ memberNames.size() + " members: " + memberNames);
-    }
+	}
+	
+	public void addUserToGroup(int senderID, String currentMemberName, String groupName, String newMemberName)
+	{
+		Group g = groups.get(groupName);
+
+		// check if the person trying to add newMemberName is in the group
+		if (g.getMembers().keySet().contains(senderID))
+		{
+			g.addMember(newMemberName, userIDs.get(newMemberName));
+			addMessage(new Message("SERVER", newMemberName, 
+					"You have been added to the '" + groupName + "' group by " + currentMemberName));
+		}
+	}
+
+	public void leaveGroup(int userID, String name, String groupName)
+	{
+		Group g = groups.get(groupName);
+
+		// cannot leave 'all' group. check if the person trying to add newMemberName is in the group
+		if (!groupName.equals("all") && g.getMembers().keySet().contains(userID))
+		{
+			g.removeMember(userID);
+			addMessage(new Message("SERVER", name, "You have left the '" + groupName + "' group"));
+		}
+	}
 
     public void removeUser(int userID)
     {
@@ -171,7 +196,7 @@ public class Server implements Runnable
 	{
 		return new LinkedList<>(groups.get(groupName).getMembers().values());
 	}
-	
+
 	public List<String> getGroupNames()
 	{
 		return new LinkedList<>(groups.keySet());

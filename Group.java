@@ -72,7 +72,7 @@ public class Group
 
     public void addMember(String name, int id)
     {
-        members.put(id, name);
+        members.putIfAbsent(id, name);
     }
 
     public void removeMember(int id)
