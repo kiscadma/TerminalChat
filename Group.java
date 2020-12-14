@@ -102,8 +102,8 @@ public class Group
                 Thread.sleep(POLL_TIMER_SECONDS*1000);
             } 
             catch (InterruptedException e) {}
-
-            serv.finishPoll(name, "The poll '" + pollQuestion + "' ended. Yes [ " + yesVotes + " ] / No [ " + noVotes + " ].");
+            String highlight = "\u001B[43m\u001B[30m ";
+            serv.finishPoll(name, "The poll '" + pollQuestion + "' ended. Result: Yes [" + (yesVotes >= noVotes ? highlight : "") +yesVotes + " \u001B[0m] | No [" + (yesVotes <= noVotes ? highlight : "") + noVotes + " \u001B[0m].");
             pollQuestion = "";
             yesVotes = 0;
             noVotes = 0;

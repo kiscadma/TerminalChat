@@ -70,7 +70,6 @@ public class ConnectionHandler implements Runnable
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
-			// IGNORE
 		}
 	}
 	
@@ -114,7 +113,6 @@ public class ConnectionHandler implements Runnable
 		} 
 		catch (ClassNotFoundException | IOException e)
 		{
-			// IGNORE
 		}
 	}
 
@@ -134,7 +132,6 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (IOException e)
 		{
-			// ignore
 		}
 	}
 	
@@ -157,7 +154,6 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
-			// ignore for now
 		}
 	}
 
@@ -191,7 +187,6 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
-			// ignore for now
 		}
 	}
 
@@ -219,7 +214,6 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
-			// ignore for now
 		}
 	}
 
@@ -242,7 +236,6 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
-			// ignore for now
 		}
 	}
 
@@ -263,7 +256,6 @@ public class ConnectionHandler implements Runnable
 		}
 		catch (ClassNotFoundException | IOException e)
 		{
-			// ignore for now
 		}
 	}
 
@@ -344,7 +336,6 @@ public class ConnectionHandler implements Runnable
 			}
 			catch (IOException | InterruptedException e)
 			{
-				// e.printStackTrace();
 			} 
 		}
 		
