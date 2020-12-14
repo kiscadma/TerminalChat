@@ -222,7 +222,7 @@ public class Server implements Runnable
 		{
 			Socket s;
 			ss = new ServerSocket(PORT);
-			ss.setSoTimeout(3000000);
+			ss.setSoTimeout(300000);
 			
 			while (keepRunning)
 			{
@@ -235,7 +235,6 @@ public class Server implements Runnable
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
 		}
 	}
 	

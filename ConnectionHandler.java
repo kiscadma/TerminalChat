@@ -68,8 +68,12 @@ public class ConnectionHandler implements Runnable
 				serv.addMessage(new Message("SERVER",userName,"Your groups: " + serv.getGroupsForUser(userName).toString()));
 			else if (command.equalsIgnoreCase("listmembers")) handleListMembers();
 		} 
-		catch (ClassNotFoundException | IOException e)
+		catch (ClassNotFoundException e)
+		{ 
+		}
+		catch (IOException e)
 		{
+			handleDisconnect();
 		}
 	}
 	
