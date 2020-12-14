@@ -289,7 +289,6 @@ public class Client implements Runnable
 			}
 			catch (ClassNotFoundException | IOException e)
 			{
-				// ignore for now
 			}
 		}
 		
@@ -306,7 +305,6 @@ public class Client implements Runnable
 				}
 				catch (ClassNotFoundException | IOException e)
 				{
-					// ignore for now
 				}
 			}
 		}
