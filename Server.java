@@ -75,6 +75,9 @@ public class Server implements Runnable
 	{
 		Group g = groups.get(groupName);
 
+		// we don't know this newMemberName. let's add them
+		if (!userIDs.containsKey(newMemberName)) addUser(newMemberName, null, userID++);
+
 		// check if the person trying to add newMemberName is in the group
 		if (g.getMembers().keySet().contains(senderID))
 		{

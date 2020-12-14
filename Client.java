@@ -50,7 +50,8 @@ public class Client implements Runnable
 
 				// check for alias usage
 				for (int i = 1; i < lineArr.length; i++)
-					if (lineArr[i].charAt(0) == '$') lineArr[i] = aliasMap.get(lineArr[i]);
+					if (lineArr[i].charAt(0) == '$' && aliasMap.containsKey(lineArr[i])) 
+						lineArr[i] =  aliasMap.get(lineArr[i]);
 
 				command = lineArr[0];
 				if (command.equalsIgnoreCase("disconnect") || command.equalsIgnoreCase("exit") || command.equalsIgnoreCase("q"))
@@ -76,7 +77,7 @@ public class Client implements Runnable
 				else if (command.equalsIgnoreCase("addtogroup")){
 					addtogroup(lineArr);
 				}else if (command.equalsIgnoreCase("leavegroup")) {
-					leaveGroup(lineArr[1]);
+					leaveGroup(lineArr);
 				}
 				else
 					System.out.println("Try 'help'");
@@ -111,21 +112,39 @@ public class Client implements Runnable
 		}
 	}
 
-	private void leaveGroup(String groupName)throws IOException
+	private void leaveGroup(String[] line)throws IOException
 	{
+		if (line.length < 2) {
+			displayHelp();
+			return;
+		}
 		out.writeObject("leavegroup");
-		out.writeObject(groupName);
+		out.writeObject(line[1]);
 	}
+
 	private void setAlias(String[] line)
 	{
+		if (line.length < 3)
+		{
+			displayHelp();
+			return;
+		}
+
 		String actualName = line[1];
 		String alias = "$" + line[2];
 
 		aliasMap.put(alias, actualName);
+		System.out.println("\n> alias set for '" + actualName + "' - that word can now be replaced with " + alias);
 	}
 
 	private void poll(String[] lineArr) throws IOException
 	{
+		if (lineArr.length < 3)
+		{
+			displayHelp();
+			return;
+		}
+
 		String msg = "";
         for (int i = 2; i < lineArr.length; i++) msg += " "+lineArr[i];
 		out.writeObject("poll");
@@ -138,17 +157,24 @@ public class Client implements Runnable
 		System.out.println("\tSupported Commands:");
 		System.out.printf("\t%-40s %s\n", "disconnect ", "Disconnect from the server");
 		System.out.printf("\t%-40s %s\n", "connect [name] ", "Connect with a new name");
+
 		System.out.printf("\t%-40s %s\n", "msg [user] [message] ", "Send a message to a user");
 		System.out.printf("\t%-40s %s\n", "msg all [message]  ", "Send a message to everyone");
 		System.out.printf("\t%-40s %s\n", "msg [group name] [message]", "Send a group message");
+		System.out.printf("\t%-40s %s\n", "reply [message]", "reply to the last person you were in contact with");
 		System.out.printf("\t%-40s %s\n", "creategroup [group name] [user] ...", "Create a group with users ");
+		System.out.printf("\t%-40s %s\n", "addtogroup [group name] [user]", "Add a user to a group ");
+		System.out.printf("\t%-40s %s\n", "leavegroup [group name] ", "Remove yourself from a group ");
 		System.out.printf("\t%-40s %s\n", "list [groupname] ", "Display users in this group");
 		System.out.printf("\t%-40s %s\n", "mygroups ", "Display groups you are a part of");
 		System.out.printf("\t%-40s %s\n", "poll [group name] [question]", "Create a poll for a group");
 		System.out.printf("\t%-40s %s\n", "poll all [question]", "Create a poll for all");
 		System.out.printf("\t%-40s %s\n", "poll [group name] [yes/no]", "Vote yes/no on a poll for a group");
-		System.out.printf("\t%-40s %s\n", "poll all [yes/no]", "Vote yes/no on a poll for a group");
-		System.out.printf("\t%-40s %s\n", "alias [name] [alias]", "Set an alias for a user. The name can be replaced with $[alias]");
+		System.out.printf("\t%-40s %s\n", "poll all [yes/no]", "Vote yes/no on a poll for the group of");
+		System.out.printf("\t%-40s %s\n", " ", "all currently connected users");
+
+		System.out.printf("\t%-40s %s\n", "alias [name] [alias]", "Set an alias for a user/word.");
+		System.out.printf("\t%-40s %s\n", " ", "The word can be replaced with $[alias]");
 		System.out.printf("\t%-40s %s\n", "help ", "Display this help page");
 
 		System.out.printf("\n\t%-40s\n", "Keyboard input persists through incoming messages. If a message is received"); 
