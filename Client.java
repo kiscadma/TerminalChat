@@ -7,6 +7,11 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Client class for a TerminalChat user.
+ *
+ * Authors: Mitchell Kiscadden and Zeru Tadesse
+ **/
 public class Client implements Runnable
 {
 	private volatile boolean keepRunning;
