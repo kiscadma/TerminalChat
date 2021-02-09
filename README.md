@@ -1,23 +1,11 @@
-# 462-project
-final project for cs462
+# TerminalChat application
 
-currently supported client commands:
-```
-msg [username/groupname for receiver] [message]
-creategroup [groupname] [members of the group delimited by 1 space]
-disconnect
-```
+Allows users on the same network to chat through a console.
 
-if a user is mentioned in creategroup or mesg and they aren't connected, they will be added as a user. When they connect the messages intended for them will be sent. There is a default group named 'all' that has all connected users.
+Current features include:
 
-Example:
- ```msg all hello world```
- will print
-  ``` > [all] mitchell: hello world```
-  for all connected users
-  
+messaging single users, groups of users, or all users,
 
+creating polls for specific groups or all users,
 
-also, spacing messed up when copying the files.
-
-# There is a TODO list and list of ideas on the ConnectionHandler.java file.
+and other small helper commands (listing current users, listing group members, etc.)
