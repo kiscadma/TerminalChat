@@ -10,6 +10,8 @@ import java.util.List;
  * a server. This will sit in the run method reading commands and handling
  * them. There is a MessageSender inner class that will get the list of 
  * outstanding messages for this user and send them after a time period.
+ *
+ * Authors: Mitchell Kiscadden and Zeru Tadesse
  */
 public class ConnectionHandler implements Runnable
 {
