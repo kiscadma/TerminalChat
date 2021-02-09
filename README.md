@@ -8,4 +8,4 @@ messaging single users, groups of users, or all users, saves messages for recipi
 
 creating polls for specific groups or all users,
 
-and other small helper commands (listing current users, listing group members, etc.)
+and other small helper commands (listing current users, listing group members, aliasing text with shortcuts, etc.)
