@@ -9,7 +9,7 @@ import java.util.List;
  * ConnectionHandler class. This is created using a socket connection from
  * a server. This will sit in the run method reading commands and handling
  * them. There is a MessageSender inner class that will get the list of 
- * outstanding messages for this user and send them every 1000ms.
+ * outstanding messages for this user and send them after a time period.
  */
 public class ConnectionHandler implements Runnable
 {
