@@ -8,6 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Server class for Terminal Chat. This will accept new connections and dispatch them to ConnectionHandlers.
+ *
+ * Authors: Mitchell Kiscadden and Zeru Tadesse
+ **/
 public class Server implements Runnable
 {
 	public static final int PORT = 5045;
@@ -21,26 +26,26 @@ public class Server implements Runnable
 	
 	public Server()
 	{
-        userIDs = Collections.synchronizedMap(new HashMap<String, Integer>());
-        groups = Collections.synchronizedMap(new HashMap<String, Group>());
+		userIDs = Collections.synchronizedMap(new HashMap<String, Integer>());
+		groups = Collections.synchronizedMap(new HashMap<String, Group>());
 		messages = Collections.synchronizedMap(new HashMap<Integer, List<Message>>());
 		addGroup("all", new LinkedList<String>());
 	}
 
 	public void addUser(String userName, ConnectionHandler ch, int userID)
 	{
-        // they haven't connected or been mentioned before
-        if (!userIDs.containsKey(userName))
-        {
-            userIDs.put(userName, userID);
-			messages.put(userID, new LinkedList<Message>());
-            System.out.println("SERVER: added new user " + userName + "[id:" + userID + "]");
-        }
-        else // they are a returning user or have already been messaged
-        {
-            userID = userIDs.get(userName);
-            ch.setID(userID); // update the connectionhandler's id
-            System.out.println("SERVER: adding existing user " + userName + "[id:" + userID + "]");
+		// they haven't connected or been mentioned before
+		if (!userIDs.containsKey(userName))
+		{
+		    userIDs.put(userName, userID);
+		    messages.put(userID, new LinkedList<Message>());
+		    System.out.println("SERVER: added new user " + userName + "[id:" + userID + "]");
+		}
+		else // they are a returning user or have already been messaged
+		{
+		    userID = userIDs.get(userName);
+		    ch.setID(userID); // update the connectionhandler's id
+		    System.out.println("SERVER: adding existing user " + userName + "[id:" + userID + "]");
 		}
 	
 		// add them to the 'all' group if they are actually online
@@ -164,6 +169,7 @@ public class Server implements Runnable
 
 	public void finishPoll(String groupName, String message)
 	{
+		// notify the group of the poll results
 		addMessage(new Message ("SERVER", groupName, message));
 	}
 
@@ -208,10 +214,9 @@ public class Server implements Runnable
 	public List<String>getGroupsForUser(String user)
 	{
 		LinkedList<String> groupsListret = new LinkedList<String>();
-		for (Group g : groups.values()){
-			if (g.getMembers().containsValue(user)){
-				groupsListret.add(g.getName());
-			}
+		for (Group g : groups.values())
+		{
+			if (g.getMembers().containsValue(user)) groupsListret.add(g.getName());
 		}
 		return groupsListret;
 	}
