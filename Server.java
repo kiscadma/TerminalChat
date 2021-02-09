@@ -225,7 +225,7 @@ public class Server implements Runnable
 	{
 		try
 		{
-			Socket s;
+			Socket s; 
 			ss = new ServerSocket(PORT);
 			ss.setSoTimeout(300000);
 			
